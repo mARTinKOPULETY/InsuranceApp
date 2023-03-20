@@ -12,7 +12,7 @@ Therefore, the customer is created using data.sql.
 URLs and JSON formats for endpoint calls:
 
 Create Quotation:
-http://localhost:8082/api/v1/quotation
+http://localhost:8082/api/v2/quotation
 
 {
     "beginningOfInsurance": "2023-03-12",
@@ -24,7 +24,7 @@ http://localhost:8082/api/v1/quotation
 }
 --------------------------------------------------------------------------
 Create Subscription:
-http://localhost:8082/api/v1/subscription
+http://localhost:8082/api/v2/subscription
 
 {
     "quotation": {
@@ -39,10 +39,10 @@ http://localhost:8082/api/v1/subscription
 
 --------------------------------------------------------------------------
 Get single Subscription:
-http://localhost:8082/api/v1/subscription/1
+http://localhost:8082/api/v2/subscription/1
 --------------------------------------------------------------------------
 Update Customer: update attributes
-http://localhost:8082/api/v1/customer/1
+http://localhost:8082/api/v2/customer/1
 {
     "firstName": "Karl",
     "lastName": "Ufon",

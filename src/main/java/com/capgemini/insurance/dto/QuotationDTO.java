@@ -1,7 +1,5 @@
 package com.capgemini.insurance.dto;
 
-import com.capgemini.insurance.entity.*;
-
 import java.math.*;
 import java.time.*;
 

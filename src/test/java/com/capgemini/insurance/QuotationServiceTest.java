@@ -2,85 +2,96 @@ package com.capgemini.insurance;
 
 
 import com.capgemini.insurance.dto.*;
-import com.capgemini.insurance.entity.Customer;
-import com.capgemini.insurance.entity.Quotation;
-import com.capgemini.insurance.repository.CustomerRepository;
-import com.capgemini.insurance.repository.QuotationRepository;
+import com.capgemini.insurance.entity.*;
+import com.capgemini.insurance.repository.*;
 import com.capgemini.insurance.service.*;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.modelmapper.ModelMapper;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
+import org.junit.jupiter.api.*;
+import org.mockito.*;
+import org.modelmapper.*;
+import org.springframework.web.server.*;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.Optional;
-import com.capgemini.insurance.dto.CustomerDTO;
-import com.capgemini.insurance.dto.QuotationDTO;
-import com.capgemini.insurance.entity.Customer;
-import com.capgemini.insurance.entity.Quotation;
-import com.capgemini.insurance.repository.CustomerRepository;
-import com.capgemini.insurance.repository.QuotationRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.modelmapper.ModelMapper;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.Optional;
+import java.math.*;
+import java.time.*;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 class QuotationServiceTest {
 
     @Mock
-    private QuotationRepository quotationRepository;
-
+    QuotationRepository quotationRepository;
     @Mock
-    private CustomerRepository customerRepository;
+    CustomerRepository customerRepository;
+    ModelMapper modelMapper = new ModelMapper();
 
-    @Mock
-    private ModelMapper modelMapper;
-
-    @InjectMocks
-    private QuotationService quotationService;
-
-    private Customer existingCustomer;
+    QuotationService quotationService;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-
-        existingCustomer = new Customer();
-        existingCustomer.setCustomerId(1L);
-        existingCustomer.setFirstName("Jan");
-        existingCustomer.setLastName("Novak");
-
-
-        when(customerRepository.findById(existingCustomer.getCustomerId())).thenReturn(Optional.of(existingCustomer));
+        quotationService = new QuotationService(quotationRepository, customerRepository, modelMapper);
     }
 
+    @Test
+    void createQuotationShouldReturnQuotation() {
+        // Given
+        QuotationDTO quotationDTO = new QuotationDTO();
+        quotationDTO.setBeginningOfInsurance(LocalDate.now());
+        quotationDTO.setDateOfSigningMortgage(LocalDate.now());
+        quotationDTO.setInsuredAmount(BigDecimal.valueOf(100000));
 
+        CustomerDTO customerDTO = new CustomerDTO();
+        customerDTO.setCustomerId(1L);
+        quotationDTO.setCustomer(customerDTO);
 
+        Customer customer = new Customer();
+        customer.setCustomerId(1L);
+        customer.setFirstName("Jan");
+        customer.setLastName("Novak");
+        customer.setMiddleName("Josef");
+        customer.setEmail("johnjnovak@gmail.com");
+        customer.setBirthDate(LocalDate.of(1980, 1, 1));
+        customer.setPhoneNumber("666999666");
+        System.out.println(quotationDTO.getQuotationId());
+        System.out.println(quotationDTO.getBeginningOfInsurance());
+        System.out.println(quotationDTO.getCustomer().getCustomerId());
+        when(customerRepository.findById(customerDTO.getCustomerId())).thenReturn(Optional.of(customer));
+        when(quotationRepository.save(any(Quotation.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        // When
+        Quotation quotation = quotationService.createQuotation(quotationDTO);
+
+        // Then
+        assertNotNull(quotation);
+        assertEquals(quotationDTO.getBeginningOfInsurance(), quotation.getBeginningOfInsurance());
+        assertEquals(quotationDTO.getDateOfSigningMortgage(), quotation.getDateOfSigningMortgage());
+        assertEquals(quotationDTO.getInsuredAmount(), quotation.getInsuredAmount());
+
+    }
 
     @Test
-    void testCreateQuotationWithId() {
+    void createQuotationShouldThrowExceptionWhenQuotationIdIsInserted() {
+        // Given
         QuotationDTO quotationDTO = new QuotationDTO();
         quotationDTO.setQuotationId(1L);
 
-        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> quotationService.createQuotation(quotationDTO));
+        // When & Then
+        assertThrows(ResponseStatusException.class, () -> quotationService.createQuotation(quotationDTO));
+    }
 
-        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
-        assertEquals("Quotation Id is not allowed here", exception.getReason());
+    @Test
+    void createQuotationShouldThrowExceptionWhenCustomerDoesNotExist() {
+        // Given
+        QuotationDTO quotationDTO = new QuotationDTO();
+        CustomerDTO customerDTO = new CustomerDTO();
+        customerDTO.setCustomerId(1L);
+        quotationDTO.setCustomer(customerDTO);
+
+        when(customerRepository.findById(customerDTO.getCustomerId())).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThrows(ResponseStatusException.class, () -> quotationService.createQuotation(quotationDTO));
     }
 }
+

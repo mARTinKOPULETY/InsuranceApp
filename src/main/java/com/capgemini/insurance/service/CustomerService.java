@@ -2,6 +2,7 @@ package com.capgemini.insurance.service;
 
 import com.capgemini.insurance.dto.*;
 import com.capgemini.insurance.entity.*;
+import com.capgemini.insurance.logging.*;
 import com.capgemini.insurance.repository.*;
 import org.springframework.stereotype.*;
 
@@ -11,10 +12,8 @@ import java.util.logging.*;
 @Service
 public class CustomerService {
 
-    private final Logger logger = Logger.getLogger(CustomerService.class.getName());
     private final CustomerRepository customerRepository;
-
-    private String originalFirstName = null;
+    private String originalFirstName = "";
     private String updatedFirstName = "";
     private String originalLastName = "";
     private String updatedLastName = "";
@@ -26,10 +25,8 @@ public class CustomerService {
     private String updatedPhoneNumber = "";
     private String originalBirthDate = "";
     private String updatedBirthDate = "";
-
     private String message= "";
-
-
+    private CustomerLogging customerLogging = new CustomerLogging(this);
 
 
     public CustomerService(CustomerRepository customerRepository) {
@@ -58,7 +55,9 @@ public class CustomerService {
             updateBirthDate(customerDTO, existingCustomer, removeAll);
 
 
-            getLoggerMessage(customerId);
+
+            customerLogging.getLoggerUpdateMessage(customerId, customerDTO);
+
 
             return customerRepository.save(existingCustomer);
         } else {
@@ -134,80 +133,6 @@ public class CustomerService {
         }
     }
 
-    private String messageFirstName(String originalFirstName, String changedString) {
-
-        if(!Objects.equals(originalFirstName, changedString)) {
-            message = "\n\t\tFirst name changed from '" + originalFirstName + "' to '" + changedString + "'. ";
-        } else {
-            message = "";
-        }
-        return message;
-    }
-
-    private String messageLastName(String originalLastName, String changedString) {
-
-//        if(originalLastName != changedString || !originalLastName.equals(changedString)){
-        if(!Objects.equals(originalLastName, changedString)){
-            message = "\n\t\tLast name changed from '" + originalLastName + "' to '" + changedString + "'. ";
-        } else {
-            message = "";
-        }
-        return message;
-    }
-
-    private String messageMiddleName(String originalMiddleName, String changedString) {
-        if(!Objects.equals(originalMiddleName, changedString)) {
-            message = "\n\t\tMiddle name changed from '" + originalMiddleName + "' to '" + changedString + "'. ";
-        } else {
-            message = "";
-        }
-        return message;
-    }
-
-    private String messageEmail(String originalEmail, String changedString) {
-        if(!Objects.equals(originalEmail, changedString)) {
-            message = "\n\t\tEmail changed from '" + originalEmail + "' to '" + changedString + "'. ";
-        } else {
-            message = "";
-        }
-        return message;
-    }
-    private String messagePhoneNumber(String originalPhoneNumber, String changedString) {
-        if(!Objects.equals(originalPhoneNumber, changedString)) {
-            message = "\n\t\tPhone number changed from '" + originalPhoneNumber + "' to '" + changedString + "'. ";
-        } else {
-            message = "";
-        }
-        return message;
-    }
-
-    private String messageBirthDate(String originalBirthDate, String changedString) {
-
-        if(!Objects.equals(originalBirthDate, changedString)) {
-            message = "\n\t\tBirth date changed from '" + originalBirthDate + "' to '" + changedString + "'. ";
-        } else {
-            message = "";
-        }
-        return message;
-    }
-
-    public void getLoggerMessage(Long customerId) {
-
-            String loggerMessage =("\n\n\tCustomer with id "+ customerId + " has been updated. " +
-                    messageFirstName(originalFirstName,updatedFirstName) +
-                    messageMiddleName(originalMiddleName,updatedMiddleName) +
-                    messageLastName(originalLastName,updatedLastName) +
-                    messageEmail(originalEmail,updatedEmail) +
-                    messagePhoneNumber(originalPhoneNumber,updatedPhoneNumber) +
-                    messageBirthDate(originalBirthDate,updatedBirthDate) + "\n");
-
-        String ifNoChanges = "";
-        if(loggerMessage.length() == 41 ){
-            ifNoChanges =  "\t\tAttributes have been updated with the same values, no changes to see.";
-        }
-
-        logger.info(loggerMessage + ifNoChanges);
-    }
 
     public String getOriginalFirstName() {
         return originalFirstName;

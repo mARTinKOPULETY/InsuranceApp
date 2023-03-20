@@ -2,6 +2,7 @@ package com.capgemini.insurance.service;
 
 import com.capgemini.insurance.dto.*;
 import com.capgemini.insurance.entity.*;
+import com.capgemini.insurance.logging.*;
 import com.capgemini.insurance.repository.*;
 import org.modelmapper.*;
 import org.springframework.http.*;
@@ -17,8 +18,9 @@ public class SubscriptionService {
     private final QuotationRepository quotationRepository;
     private final CustomerRepository customerRepository;
     private final ModelMapper modelMapper;
+    private SubscriptionLogging subscriptionLogging = new SubscriptionLogging(this);
 
-    public SubscriptionService(SubscriptionRepository subscriptionRepository, QuotationService quotationService, QuotationRepository quotationRepository, CustomerRepository customerRepository, ModelMapper modelMapper) {
+    public SubscriptionService(SubscriptionRepository subscriptionRepository, QuotationRepository quotationRepository, CustomerRepository customerRepository, ModelMapper modelMapper) {
         this.subscriptionRepository = subscriptionRepository;
         this.quotationRepository = quotationRepository;
         this.customerRepository = customerRepository;
@@ -32,13 +34,7 @@ public class SubscriptionService {
         Customer customer = checkIfCustomerExists(subscriptionDTO);
 
         Subscription subscription = modelMapper.map(subscriptionDTO, Subscription.class);
-
-        String middleName = paddingOfTheMiddleNameSpace(customer);
-
-        logger.info("Subscription created. Start date: " + subscription.getStartDate() +
-                ". Valid until: "+ subscription.getValidUntil() +
-                ". For quotation id: " + subscription.getQuotation().getQuotationId()+
-                ". Customer: " + customer.getFirstName() + " " +middleName+ customer.getLastName() + ".");
+        subscriptionLogging.getLoggerCreateMessage(customer, subscription);
 
         return subscriptionRepository.save(subscription);
     }
@@ -83,26 +79,14 @@ public class SubscriptionService {
                 Subscription subscription = subscriptionRepository.findById(id).orElse(null);
                 Quotation quotation = quotationRepository.findById(id).orElse(null);
 
-                String middleName = paddingOfTheMiddleNameSpace(customer);
-
-                logger.info("\n\n\tSubscription with id: " + id + " was requested: " +
-                        "\n\t\tCustomer: " + customer.getFirstName() +
-                        " " + middleName + customer.getLastName() +
-                        ". Customers email: " + customer.getEmail() +
-                        ". Customers phone number: " + customer.getPhoneNumber() +
-                        ".\n\t\tQuotation id: " + quotation.getQuotationId() +
-                        ". Quotation start date: " + subscription.getStartDate() +
-                        ". Quotation valid until: " + subscription.getValidUntil() +
-                        ".\n\t\tBeginning of insurance: " + quotation.getBeginningOfInsurance() +
-                        ". Insured amount: " + quotation.getInsuredAmount() +
-                        ". Date of signing the mortgage: " + quotation.getDateOfSigningMortgage()+
-                        ".\n");
+                subscriptionLogging.getLoggerMessage(id, customer, subscription, quotation);
 
                 return subscription;
             } catch (Exception e) {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Subscription with id " + id + " does not exist");
             }
     }
+
 
 
 
