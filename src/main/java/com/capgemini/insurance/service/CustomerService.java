@@ -54,10 +54,7 @@ public class CustomerService {
             updatePhoneNumber(customerDTO, existingCustomer, removeAll);
             updateBirthDate(customerDTO, existingCustomer, removeAll);
 
-
-
             customerLogging.getLoggerUpdateMessage(customerId, customerDTO);
-
 
             return customerRepository.save(existingCustomer);
         } else {

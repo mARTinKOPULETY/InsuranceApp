@@ -1,3 +1,8 @@
+
+EDIT: Link for documentation:
+https://documenter.getpostman.com/view/20391003/2s93K1r14a
+
+
 Application runs on port 8082!
 
 URL for database:
