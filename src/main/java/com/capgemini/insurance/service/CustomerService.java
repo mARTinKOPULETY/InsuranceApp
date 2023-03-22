@@ -4,10 +4,11 @@ import com.capgemini.insurance.dto.*;
 import com.capgemini.insurance.entity.*;
 import com.capgemini.insurance.logging.*;
 import com.capgemini.insurance.repository.*;
+import org.springframework.http.*;
 import org.springframework.stereotype.*;
+import org.springframework.web.server.*;
 
 import java.util.*;
-import java.util.logging.*;
 
 @Service
 public class CustomerService {
@@ -38,27 +39,29 @@ public class CustomerService {
     // If the DTO contains null values, the corresponding fields in the Customer object are set to null.
     //If the DTO contains a value for the field removeAll, all fields in the Customer object are set to null.
     //Updating or removing methods are separated into its own method for readability.
-    public Customer modifyCustomer(Long customerId, CustomerDTO customerDTO) throws IllegalArgumentException {
+    public Customer modifyCustomer(Long customerId, CustomerDTO customerDTO) {
 
         Optional<Customer> optionalCustomer = customerRepository.findById(customerId);
+
 
         if (optionalCustomer.isPresent()) {
 
             Customer existingCustomer = optionalCustomer.get();
-            boolean removeAll = customerDTO.isRemoveAll();
 
-            updateFirstName(customerDTO, existingCustomer, removeAll);
-            updateLastName(customerDTO, existingCustomer, removeAll);
-            updateMiddleName(customerDTO, existingCustomer, removeAll);
-            updateEmail(customerDTO, existingCustomer, removeAll);
-            updatePhoneNumber(customerDTO, existingCustomer, removeAll);
-            updateBirthDate(customerDTO, existingCustomer, removeAll);
+            boolean isRemoveAll = customerDTO.isRemoveAll();
+
+            updateFirstName(customerDTO, existingCustomer, isRemoveAll);
+            updateLastName(customerDTO, existingCustomer, isRemoveAll);
+            updateMiddleName(customerDTO, existingCustomer, isRemoveAll);
+            updateEmail(customerDTO, existingCustomer, isRemoveAll);
+            updatePhoneNumber(customerDTO, existingCustomer, isRemoveAll);
+            updateBirthDate(customerDTO, existingCustomer, isRemoveAll);
 
             customerLogging.getLoggerUpdateMessage(customerId, customerDTO);
 
             return customerRepository.save(existingCustomer);
         } else {
-            throw new IllegalArgumentException("Customer not found for this id: " + customerId);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Customer not found for id: " + customerId);
         }
     }
 
@@ -66,9 +69,9 @@ public class CustomerService {
         originalFirstName = existingCustomer.getFirstName();
         if (customerDTO.getFirstName() != null) {
            updatedFirstName = customerDTO.getFirstName();
-
             existingCustomer.setFirstName(customerDTO.getFirstName());
-        } else if (removeAll || customerDTO.getFirstName() == null  ) {
+        }
+        if (removeAll || customerDTO.getFirstName() == null  ) {
             updatedFirstName  = null;
             existingCustomer.setFirstName(null);
         }
@@ -79,7 +82,8 @@ public class CustomerService {
         if (customerDTO.getLastName() != null) {
            updatedLastName = customerDTO.getLastName();
             existingCustomer.setLastName(customerDTO.getLastName());
-        } else if (removeAll || customerDTO.getLastName() == null) {
+        }
+        if (removeAll || customerDTO.getLastName() == null) {
             existingCustomer.setLastName(null);
             updatedLastName = null;
         }
@@ -90,7 +94,8 @@ public class CustomerService {
         if (customerDTO.getMiddleName() != null) {
             updatedMiddleName = customerDTO.getMiddleName();
             existingCustomer.setMiddleName(customerDTO.getMiddleName());
-        } else if (removeAll || customerDTO.getMiddleName() == null ) {
+        }
+        if (removeAll || customerDTO.getMiddleName() == null ) {
            updatedMiddleName= null;
             existingCustomer.setMiddleName(null);
         }
@@ -101,7 +106,8 @@ public class CustomerService {
         if (customerDTO.getEmail() != null) {
             updatedEmail = customerDTO.getEmail();
             existingCustomer.setEmail(customerDTO.getEmail());
-        } else if (removeAll || customerDTO.getEmail() == null  ) {
+        }
+        if (removeAll || customerDTO.getEmail() == null  ) {
             updatedEmail= null;
             existingCustomer.setEmail(null);
         }
@@ -112,19 +118,21 @@ public class CustomerService {
         if (customerDTO.getPhoneNumber() != null) {
             updatedPhoneNumber= customerDTO.getPhoneNumber();
             existingCustomer.setPhoneNumber(customerDTO.getPhoneNumber());
-        } else if (removeAll || customerDTO.getPhoneNumber() == null) {
+        }
+        if (removeAll || customerDTO.getPhoneNumber() == null) {
             updatedPhoneNumber = null;
             existingCustomer.setPhoneNumber(null);
         }
     }
 
+
     private void updateBirthDate(CustomerDTO customerDTO, Customer existingCustomer, boolean removeAll) {
         originalBirthDate = (existingCustomer.getBirthDate() == null) ? null : existingCustomer.getBirthDate().toString();
-//        originalBirthDate = existingCustomer.getBirthDate().toString();
         if (customerDTO.getBirthDate() != null) {
            updatedBirthDate = customerDTO.getBirthDate().toString();
             existingCustomer.setBirthDate(customerDTO.getBirthDate());
-        } else if (removeAll || customerDTO.getBirthDate() == null) {
+        }
+        if (removeAll || customerDTO.getBirthDate() == null) {
             updatedBirthDate = null;
             existingCustomer.setBirthDate(null);
         }

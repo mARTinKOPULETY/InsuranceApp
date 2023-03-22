@@ -1,5 +1,7 @@
 package com.capgemini.insurance.entity;
 
+import com.fasterxml.jackson.annotation.*;
+
 import javax.persistence.*;
 import javax.validation.constraints.*;
 import java.time.*;
@@ -26,6 +28,8 @@ public class Customer {
     @Column (name="birth_date")
     @Past(message = "Birth date should be in the past")
     private LocalDate birthDate;
+    @Transient
+    private boolean removeAll;
     @OneToMany(mappedBy="customer", cascade = CascadeType.ALL)
     private Set<Quotation> quotations;
 
@@ -40,6 +44,7 @@ public class Customer {
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.birthDate = birthDate;
+        this.removeAll = false;
         this.quotations = quotations;
     }
 
@@ -105,5 +110,13 @@ public class Customer {
 
     public void setQuotations(Set<Quotation> quotations) {
         this.quotations = quotations;
+    }
+
+    public boolean isRemoveAll() {
+        return removeAll;
+    }
+
+    public void setRemoveAll(boolean removeAll) {
+        this.removeAll = removeAll;
     }
 }
