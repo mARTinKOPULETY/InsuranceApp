@@ -4,6 +4,7 @@ package com.capgemini.insurance.service;
 import com.capgemini.insurance.dto.CustomerDTO;
 import com.capgemini.insurance.entity.Customer;
 import com.capgemini.insurance.repository.CustomerRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,12 +31,12 @@ public class CustomerServiceTest {
     @Mock
     public CustomerRepository customerRepository;
 
+    private Customer customer;
+    private CustomerDTO customerDTO;
 
-    @Test
-    @DisplayName("Should modify customer")
-    void modifyCustomerTest(){
-        //Arrange
-        Customer customer = new Customer();
+    @BeforeEach
+    void init(){
+        customer = new Customer();
         customer.setCustomerId(1L);
         customer.setFirstName("Jan");
         customer.setLastName("Novak");
@@ -44,11 +45,17 @@ public class CustomerServiceTest {
         customer.setPhoneNumber("666999666");
         customer.setBirthDate(LocalDate.of(1990, 1, 1));
 
-        CustomerDTO customerDTO = new CustomerDTO();
+        customerDTO = new CustomerDTO();
+    }
+
+    @Test
+    @DisplayName("Should modify customer")
+    void modifyCustomerTest(){
+        //Arrange
         customerDTO.setFirstName("Karl");
+        customerDTO.setMiddleName("Von");
         customerDTO.setLastName("Ufon");
         customerDTO.setEmail("KarlVonUfon@programnautajovanisvedku.cz");
-        customerDTO.setMiddleName("Von");
         customerDTO.setPhoneNumber("999666999");
         customerDTO.setBirthDate(LocalDate.of(1991, 1, 1));
 
@@ -69,19 +76,7 @@ public class CustomerServiceTest {
     @Test
     @DisplayName("Should update all customers parameters as a null")
     void modifyCustomerTestWithNulls(){
-
         //Arrange
-        Customer customer = new Customer();
-        customer.setCustomerId(1L);
-        customer.setFirstName("Jan");
-        customer.setLastName("Novak");
-        customer.setMiddleName("Josef");
-        customer.setEmail("johnjnovak@gmail.com");
-        customer.setPhoneNumber("666999666");
-        customer.setBirthDate(LocalDate.of(1990, 1, 1));
-
-        CustomerDTO customerDTO = new CustomerDTO();
-
         when(customerRepository.findById(anyLong())).thenReturn(Optional.of(customer));
         when(customerRepository.save(any(Customer.class))).thenReturn(customer);
         //Act
@@ -100,16 +95,6 @@ public class CustomerServiceTest {
     @DisplayName("Should update all customers parameters as null by using removeAll boolean parameter")
     void testModifyCustomerWithRemoveAll() {
         //Arrange
-        Customer customer = new Customer();
-        customer.setCustomerId(1L);
-        customer.setFirstName("Jan");
-        customer.setLastName("Novak");
-        customer.setMiddleName("Josef");
-        customer.setEmail("johnjnovak@gmail.com");
-        customer.setPhoneNumber("666999666");
-        customer.setBirthDate(LocalDate.of(1990, 1, 1));
-
-        CustomerDTO customerDTO = new CustomerDTO();
         customerDTO.setRemoveAll(true);
 
         when(customerRepository.findById(anyLong())).thenReturn(Optional.of(customer));
@@ -130,10 +115,8 @@ public class CustomerServiceTest {
     @DisplayName("Should throw ResponseStatusException")
     void modifyCustomerWrongId(){
         //Arrange
-        CustomerDTO customerDTO = new CustomerDTO();
-
         when(customerRepository.findById(1L)).thenReturn(Optional.empty());
-        //Act
+        //Act&Assert
         ResponseStatusException exception = assertThrows(ResponseStatusException.class, ()-> {
             customerService.modifyCustomer(1L,customerDTO);
         });
